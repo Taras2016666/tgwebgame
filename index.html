@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>RPG Битва з Босом</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 40px; }
+        #boss-hp { font-size: 1.5em; color: #b00; }
+        #player-stats { margin: 20px 0; }
+        .shop, .inventory { display: none; margin: 20px auto; max-width: 350px; }
+        button { font-size: 1em; margin: 5px; padding: 10px 20px; }
+        .item-btn { width: 100%; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <h1>Битва з Босом</h1>
+    <div id="boss-hp">Здоров'я боса: <span id="bossHp">200</span></div>
+    <div id="player-stats">
+        <div>Твоє здоров'я: <span id="playerHp">100</span></div>
+        <div>Монети: <span id="coins">0</span></div>
+        <div>Інвентар: <span id="inventory"></span></div>
+        <div>Броня: <span id="armor">Немає</span></div>
+        <div>Меч: <span id="sword">Немає</span></div>
+    </div>
+    <button onclick="fightBoss()">Сражаться</button>
+    <button onclick="openShop()">Магазин</button>
+    <button onclick="usePotion('heal_potion')">Використати heal_potion</button>
+    <button onclick="usePotion('mana_potion')">Використати mana_potion</button>
+    <div class="shop" id="shop">
+        <h3>Магазин</h3>
+        <button class="item-btn" onclick="buy('heal_potion')">heal_potion (15 монет)</button>
+        <button class="item-btn" onclick="buy('mana_potion')">mana_potion (20 монет)</button>
+        <button class="item-btn" onclick="buy('iron_armor')">iron_armor (100 монет)</button>
+        <button class="item-btn" onclick="buy('diamond_armor')">diamond_armor (200 монет)</button>
+        <button class="item-btn" onclick="buy('stone_sword')">stone_sword (50 монет)</button>
+        <button class="item-btn" onclick="buy('iron_sword')">iron_sword (100 монет)</button>
+        <button class="item-btn" onclick="buy('diamond_sword')">diamond_sword (150 монет)</button>
+        <button onclick="closeShop()">Закрити</button>
+    </div>
+    <div id="msg" style="margin:20px;color:green;"></div>
+    <script>
+        // Стартові дані
+        let player = {
+            hp: 100,
+            coins: 50,
+            inventory: [],
+            armor: null,
+            sword: null,
+            mana: 50
+        };
+        let boss = { hp: 200 };
+
+        function update() {
+            document.getElementById('playerHp').textContent = player.hp;
+            document.getElementById('coins').textContent = player.coins;
+            document.getElementById('bossHp').textContent = boss.hp;
+            document.getElementById('inventory').textContent = player.inventory.join(', ') || 'Порожньо';
+            document.getElementById('armor').textContent = player.armor || 'Немає';
+            document.getElementById('sword').textContent = player.sword || 'Немає';
+        }
+
+        function fightBoss() {
+            if (player.hp <= 0) { showMsg("Ти мертвий!"); return; }
+            if (boss.hp <= 0) { showMsg("Бос вже переможений!"); return; }
+            let baseAttack = Math.floor(Math.random() * 21) + 10; // 10-30
+            // Меч
+            if (player.sword === "stone_sword") baseAttack += 10;
+            if (player.sword === "iron_sword") baseAttack += 20;
+            if (player.sword === "diamond_sword") baseAttack += 30;
+            boss.hp -= baseAttack;
+            // Бос атакує
+            let bossAttack = Math.floor(Math.random() * 16) + 5; // 5-20
+            // Броня
+            if (player.armor === "iron_armor") bossAttack = Math.floor(bossAttack * 0.9);
+            if (player.armor === "diamond_armor") bossAttack = Math.floor(bossAttack * 0.8);
+            player.hp -= bossAttack;
+            // Нагорода
+            if (boss.hp <= 0) {
+                player.coins += 100;
+                showMsg("Ти переміг боса! +100 монет");
+                boss.hp = 200; // Новий бос
+            } else if (player.hp <= 0) {
+                player.hp = 0;
+                showMsg("Ти програв! Віднови здоров'я.");
+            } else {
+                showMsg(`Ти наніс ${baseAttack} шкоди. Бос наніс ${bossAttack} шкоди.`);
+            }
+            if (player.hp < 0) player.hp = 0;
+            update();
+        }
+
+        function openShop() {
+            document.getElementById('shop').style.display = 'block';
+        }
+        function closeShop() {
+            document.getElementById('shop').style.display = 'none';
+        }
+
+        function buy(item) {
+            const prices = {
+                "heal_potion": 15, "mana_potion": 20,
+                "iron_armor": 100, "diamond_armor": 200,
+                "stone_sword": 50, "iron_sword": 100, "diamond_sword": 150
+            };
+            if (player.coins < prices[item]) {
+                showMsg("Недостатньо монет!");
+                return;
+            }
+            player.coins -= prices[item];
+            if (item.endsWith("_armor")) player.armor = item;
+            else if (item.endsWith("_sword")) player.sword = item;
+            else player.inventory.push(item);
+            showMsg("Ти купив " + item + "!");
+            update();
+        }
+
+        function usePotion(item) {
+            let idx = player.inventory.indexOf(item);
+            if (idx === -1) { showMsg("Немає такого предмета!"); return; }
+            if (item === "heal_potion") {
+                player.hp = Math.min(player.hp + 50, 100);
+                player.inventory.splice(idx, 1);
+                showMsg("Ти використав heal_potion і відновив 50 здоров'я!");
+            } else if (item === "mana_potion") {
+                player.mana = Math.min((player.mana || 0) + 30, 50);
+                player.inventory.splice(idx, 1);
+                showMsg("Ти використав mana_potion і відновив 30 мани!");
+            }
+            update();
+        }
+
+        function showMsg(txt) {
+            document.getElementById('msg').textContent = txt;
+            setTimeout(() => { document.getElementById('msg').textContent = ""; }, 2500);
+        }
+
+        update();
+    </script>
+</body>
+</html>
