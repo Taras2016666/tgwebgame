@@ -3,60 +3,256 @@
 <head>
     <meta charset="UTF-8">
     <title>RPG Битва з Босом</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 40px; }
-        #boss-hp { font-size: 1.5em; color: #b00; }
-        #player-stats { margin: 20px 0; }
-        .shop, .inventory { display: none; margin: 20px auto; max-width: 350px; }
-        button { font-size: 1em; margin: 5px; padding: 10px 20px; }
-        .item-btn { width: 100%; margin: 5px 0; }
+        :root {
+            --main-bg: #232946;
+            --panel-bg: #121629;
+            --accent: #eebbc3;
+            --text: #fffffe;
+            --button: #eebbc3;
+            --button-hover: #ffd6e0;
+            --bar-bg: #393e6e;
+            --bar-hp: #ff595a;
+            --bar-mana: #3da9fc;
+            --bar-boss: #f25f4c;
+        }
+        body {
+            background: var(--main-bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 420px;
+            margin: 40px auto;
+            background: var(--panel-bg);
+            border-radius: 18px;
+            box-shadow: 0 8px 32px #0006;
+            padding: 32px 18px 24px 18px;
+        }
+        h1 {
+            color: var(--accent);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+        .boss-section, .player-section {
+            margin-bottom: 24px;
+        }
+        .boss-img {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f25f4c 60%, #ffb4a2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px auto;
+            font-size: 3em;
+            box-shadow: 0 4px 16px #f25f4c44;
+            animation: bossPulse 2s infinite alternate;
+        }
+        @keyframes bossPulse {
+            0% { transform: scale(1);}
+            100% { transform: scale(1.07);}
+        }
+        .bar-bg {
+            background: var(--bar-bg);
+            border-radius: 8px;
+            height: 18px;
+            margin: 6px 0 12px 0;
+            width: 100%;
+            overflow: hidden;
+        }
+        .bar {
+            height: 100%;
+            border-radius: 8px;
+            transition: width 0.4s cubic-bezier(.4,2,.6,1);
+        }
+        .bar-hp { background: var(--bar-hp);}
+        .bar-mana { background: var(--bar-mana);}
+        .bar-boss { background: var(--bar-boss);}
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .inventory, .shop {
+            background: #232946;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 18px 0;
+            box-shadow: 0 2px 8px #0002;
+        }
+        .inventory-title, .shop-title {
+            color: var(--accent);
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        .inv-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .inv-item {
+            background: #393e6e;
+            color: #fff;
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 0.97em;
+        }
+        .shop-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .shop-btn {
+            background: var(--button);
+            color: #232946;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 0;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .shop-btn:hover {
+            background: var(--button-hover);
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .main-btn {
+            background: var(--button);
+            color: #232946;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: background 0.2s;
+        }
+        .main-btn:hover {
+            background: var(--button-hover);
+        }
+        #msg {
+            min-height: 24px;
+            text-align: center;
+            color: var(--accent);
+            font-weight: 500;
+            margin: 10px 0 0 0;
+            transition: color 0.2s;
+        }
+        @media (max-width: 600px) {
+            .container { max-width: 98vw; padding: 10px 2vw 18px 2vw;}
+            .boss-img { width: 70px; height: 70px; font-size: 2em;}
+        }
     </style>
 </head>
 <body>
-    <h1>Битва з Босом</h1>
-    <div id="boss-hp">Здоров'я боса: <span id="bossHp">200</span></div>
-    <div id="player-stats">
-        <div>Твоє здоров'я: <span id="playerHp">100</span></div>
-        <div>Монети: <span id="coins">0</span></div>
-        <div>Інвентар: <span id="inventory"></span></div>
-        <div>Броня: <span id="armor">Немає</span></div>
-        <div>Меч: <span id="sword">Немає</span></div>
+    <div class="container">
+        <h1>RPG: Битва з Босом</h1>
+        <div class="boss-section">
+            <div class="boss-img" id="bossImg">👹</div>
+            <div class="stats">
+                <span>Бос</span>
+                <span id="bossHpText">200 / 200</span>
+            </div>
+            <div class="bar-bg"><div class="bar bar-boss" id="bossHpBar" style="width:100%"></div></div>
+        </div>
+        <div class="player-section">
+            <div class="stats">
+                <span>Ти</span>
+                <span id="playerHpText">100 / 100</span>
+            </div>
+            <div class="bar-bg"><div class="bar bar-hp" id="playerHpBar" style="width:100%"></div></div>
+            <div class="stats">
+                <span>Мана</span>
+                <span id="playerManaText">50 / 50</span>
+            </div>
+            <div class="bar-bg"><div class="bar bar-mana" id="playerManaBar" style="width:100%"></div></div>
+            <div class="stats">
+                <span>Монети: <b id="coins">0</b></span>
+                <span>Рівень: <b id="level">1</b></span>
+            </div>
+            <div class="stats">
+                <span>Броня: <b id="armor">Немає</b></span>
+                <span>Меч: <b id="sword">Немає</b></span>
+            </div>
+        </div>
+        <div class="actions">
+            <button class="main-btn" onclick="fightBoss()">Сражатися</button>
+            <button class="main-btn" onclick="openShop()">Магазин</button>
+            <button class="main-btn" onclick="usePotion('heal_potion')">heal_potion</button>
+            <button class="main-btn" onclick="usePotion('mana_potion')">mana_potion</button>
+        </div>
+        <div class="inventory">
+            <div class="inventory-title">Інвентар:</div>
+            <div class="inv-list" id="inventory"></div>
+        </div>
+        <div class="shop" id="shop" style="display:none;">
+            <div class="shop-title">Магазин</div>
+            <div class="shop-list">
+                <button class="shop-btn" onclick="buy('heal_potion')">heal_potion (15 монет)</button>
+                <button class="shop-btn" onclick="buy('mana_potion')">mana_potion (20 монет)</button>
+                <button class="shop-btn" onclick="buy('iron_armor')">iron_armor (100 монет)</button>
+                <button class="shop-btn" onclick="buy('diamond_armor')">diamond_armor (200 монет)</button>
+                <button class="shop-btn" onclick="buy('stone_sword')">stone_sword (50 монет)</button>
+                <button class="shop-btn" onclick="buy('iron_sword')">iron_sword (100 монет)</button>
+                <button class="shop-btn" onclick="buy('diamond_sword')">diamond_sword (150 монет)</button>
+                <button class="shop-btn" onclick="closeShop()">Закрити</button>
+            </div>
+        </div>
+        <div id="msg"></div>
     </div>
-    <button onclick="fightBoss()">Сражаться</button>
-    <button onclick="openShop()">Магазин</button>
-    <button onclick="usePotion('heal_potion')">Використати heal_potion</button>
-    <button onclick="usePotion('mana_potion')">Використати mana_potion</button>
-    <div class="shop" id="shop">
-        <h3>Магазин</h3>
-        <button class="item-btn" onclick="buy('heal_potion')">heal_potion (15 монет)</button>
-        <button class="item-btn" onclick="buy('mana_potion')">mana_potion (20 монет)</button>
-        <button class="item-btn" onclick="buy('iron_armor')">iron_armor (100 монет)</button>
-        <button class="item-btn" onclick="buy('diamond_armor')">diamond_armor (200 монет)</button>
-        <button class="item-btn" onclick="buy('stone_sword')">stone_sword (50 монет)</button>
-        <button class="item-btn" onclick="buy('iron_sword')">iron_sword (100 монет)</button>
-        <button class="item-btn" onclick="buy('diamond_sword')">diamond_sword (150 монет)</button>
-        <button onclick="closeShop()">Закрити</button>
-    </div>
-    <div id="msg" style="margin:20px;color:green;"></div>
     <script>
         // Стартові дані
         let player = {
             hp: 100,
+            maxHp: 100,
             coins: 50,
             inventory: [],
             armor: null,
             sword: null,
-            mana: 50
+            mana: 50,
+            maxMana: 50,
+            level: 1
         };
-        let boss = { hp: 200 };
+        let boss = { hp: 200, maxHp: 200 };
 
         function update() {
-            document.getElementById('playerHp').textContent = player.hp;
+            document.getElementById('playerHpText').textContent = player.hp + " / " + player.maxHp;
+            document.getElementById('playerHpBar').style.width = (player.hp / player.maxHp * 100) + "%";
+            document.getElementById('playerManaText').textContent = player.mana + " / " + player.maxMana;
+            document.getElementById('playerManaBar').style.width = (player.mana / player.maxMana * 100) + "%";
             document.getElementById('coins').textContent = player.coins;
-            document.getElementById('bossHp').textContent = boss.hp;
-            document.getElementById('inventory').textContent = player.inventory.join(', ') || 'Порожньо';
+            document.getElementById('level').textContent = player.level;
             document.getElementById('armor').textContent = player.armor || 'Немає';
             document.getElementById('sword').textContent = player.sword || 'Немає';
+            document.getElementById('bossHpText').textContent = boss.hp + " / " + boss.maxHp;
+            document.getElementById('bossHpBar').style.width = (boss.hp / boss.maxHp * 100) + "%";
+            // Inventory
+            let inv = document.getElementById('inventory');
+            inv.innerHTML = '';
+            if (player.inventory.length === 0) {
+                inv.innerHTML = '<span class="inv-item">Порожньо</span>';
+            } else {
+                player.inventory.forEach(item => {
+                    let el = document.createElement('span');
+                    el.className = 'inv-item';
+                    el.textContent = item;
+                    inv.appendChild(el);
+                });
+            }
         }
 
         function fightBoss() {
@@ -68,24 +264,27 @@
             if (player.sword === "iron_sword") baseAttack += 20;
             if (player.sword === "diamond_sword") baseAttack += 30;
             boss.hp -= baseAttack;
+            if (boss.hp < 0) boss.hp = 0;
             // Бос атакує
             let bossAttack = Math.floor(Math.random() * 16) + 5; // 5-20
             // Броня
             if (player.armor === "iron_armor") bossAttack = Math.floor(bossAttack * 0.9);
             if (player.armor === "diamond_armor") bossAttack = Math.floor(bossAttack * 0.8);
             player.hp -= bossAttack;
+            if (player.hp < 0) player.hp = 0;
             // Нагорода
             if (boss.hp <= 0) {
                 player.coins += 100;
-                showMsg("Ти переміг боса! +100 монет");
-                boss.hp = 200; // Новий бос
+                player.level += 1;
+                showMsg("Ти переміг боса! +100 монет, рівень +" + player.level);
+                boss.hp = boss.maxHp + 50 * player.level;
+                boss.maxHp = boss.hp;
             } else if (player.hp <= 0) {
                 player.hp = 0;
                 showMsg("Ти програв! Віднови здоров'я.");
             } else {
                 showMsg(`Ти наніс ${baseAttack} шкоди. Бос наніс ${bossAttack} шкоди.`);
             }
-            if (player.hp < 0) player.hp = 0;
             update();
         }
 
@@ -118,11 +317,11 @@
             let idx = player.inventory.indexOf(item);
             if (idx === -1) { showMsg("Немає такого предмета!"); return; }
             if (item === "heal_potion") {
-                player.hp = Math.min(player.hp + 50, 100);
+                player.hp = Math.min(player.hp + 50, player.maxHp);
                 player.inventory.splice(idx, 1);
                 showMsg("Ти використав heal_potion і відновив 50 здоров'я!");
             } else if (item === "mana_potion") {
-                player.mana = Math.min((player.mana || 0) + 30, 50);
+                player.mana = Math.min(player.mana + 30, player.maxMana);
                 player.inventory.splice(idx, 1);
                 showMsg("Ти використав mana_potion і відновив 30 мани!");
             }
@@ -130,9 +329,21 @@
         }
 
         function showMsg(txt) {
-            document.getElementById('msg').textContent = txt;
-            setTimeout(() => { document.getElementById('msg').textContent = ""; }, 2500);
+            let msg = document.getElementById('msg');
+            msg.textContent = txt;
+            msg.style.color = "#eebbc3";
+            msg.style.animation = "none";
+            msg.offsetHeight; // force reflow
+            msg.style.animation = "msgFlash 0.7s";
         }
+        // Flash animation for message
+        document.head.insertAdjacentHTML("beforeend", `<style>
+        @keyframes msgFlash {
+            0% { color: #eebbc3;}
+            50% { color: #fff;}
+            100% { color: #eebbc3;}
+        }
+        </style>`);
 
         update();
     </script>
